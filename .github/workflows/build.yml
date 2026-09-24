@@ -80,7 +80,7 @@ jobs:
             org.opencontainers.image.description=Web UI for the Video2X CLI (upscaling / frame interpolation on NVIDIA/Vulkan GPUs) in a linuxserver.io-style container
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build image
         id: build
