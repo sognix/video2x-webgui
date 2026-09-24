@@ -1,0 +1,28 @@
+# Example setup. Adjust the paths on the left of each volume, and PUID/PGID to the
+# owner of your media folders. For Intel/AMD GPUs replace the `deploy:` block with:
+#     devices:
+#       - /dev/dri:/dev/dri
+services:
+  video2x-webgui:
+    image: ghcr.io/sognix/video2x-webgui:latest
+    container_name: video2x-webgui
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=022 # 002 = group may modify too, 000 = everyone
+    volumes:
+      - ./config:/config
+      - ./videos:/videos
+      - ./batch:/batch
+      - ./logs:/logs
+    ports:
+      - 3000:3000 # HTTP
+      # - 3001:3001 # HTTPS (self-signed)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped

@@ -1,0 +1,611 @@
+/* Copyright (C) 2026 sognix
+   SPDX-License-Identifier: AGPL-3.0-or-later */
+
+:root {
+  color-scheme: light dark;
+  --bg: #f5f5f7;
+  --panel: #ffffff;
+  --border: #d8d8dc;
+  --text: #1c1c1e;
+  --muted: #6b6b70;
+  --accent: #3d6ff5;
+  --accent-text: #ffffff;
+  --accent2: #0d9488;
+  --accent2-text: #ffffff;
+  --danger: #d64545;
+  --ok: #2fa84f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16161a;
+    --panel: #201f24;
+    --border: #34343a;
+    --text: #f0f0f2;
+    --muted: #9a9aa0;
+    --accent: #5c8bff;
+    --accent-text: #0b0b0d;
+    --accent2: #2dd4bf;
+    --accent2-text: #0b0b0d;
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* Author CSS on an element (e.g. `main { display: flex }`) otherwise silently
+   overrides the UA default for [hidden], since author-origin rules win over
+   UA-origin rules regardless of specificity. Without this, toggling .hidden
+   in JS has no visual effect on elements that also get a display rule below. */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding-block: 24px;
+}
+
+header {
+  padding: 0 16px 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+header img {
+  height: 64px;
+  width: auto;
+  display: block;
+}
+
+main,
+#tab-queues,
+#tab-logs {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.site-footer {
+  max-width: 900px;
+  margin: 24px auto 0;
+  padding: 0 16px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.site-footer a {
+  color: inherit;
+}
+
+.global-error {
+  max-width: 868px;
+  width: calc(100% - 32px);
+  margin: 0 auto 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  color: var(--danger);
+  background: var(--panel);
+  white-space: pre-line;
+  font-size: 0.9rem;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 1.05rem;
+}
+
+.panel h3 {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+label.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+input, select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 12px;
+}
+
+@media (max-width: 480px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: 6px;
+  padding: 9px 14px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.job-cancel.secondary {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* removing finished entries from the list: outlined like Cancel, but in the
+   primary blue so it doesn't read as destructive */
+.job-clear.secondary {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* secondary actions that still deserve attention (e.g. preview clip) — same teal as the top tabs */
+button.accent2 {
+  background: var(--accent2);
+  color: var(--accent2-text);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+#extra-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.extra-option input { flex: 1; }
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 4px 0 10px;
+}
+
+.hint.warning {
+  color: var(--danger);
+}
+
+.scroll-box {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.scroll-box .file-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.scroll-box .file-row:last-child {
+  border-bottom: none;
+}
+
+.scroll-box .file-row.skipped {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.scroll-box .file-row.skipped .file-size {
+  text-decoration: none;
+}
+
+.scroll-box .file-size {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.scroll-box .empty {
+  padding: 10px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+#batch-devices-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+#batch-devices-list label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.mode-btn,
+.toptab-btn {
+  flex: 1;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.mode-btn.active {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.toptab-btn.active {
+  background: var(--accent2);
+  color: var(--accent2-text);
+  border-color: var(--accent2);
+}
+
+/* Full-width bar (not a card like the other panels) so it visually reads as
+   one piece of chrome the Run/Status buttons belong to, not another box
+   sitting inside a box. */
+#panel-toptabs {
+  width: 100%;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+#panel-toptabs .mode-toggle {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.overview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.overview-text {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+#batches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.batch-row {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.batch-row .job-meta {
+  margin-bottom: 0;
+}
+
+.batch-row .job-cancel {
+  margin-top: 6px;
+}
+
+.job-progress-bar.has-error {
+  background: linear-gradient(90deg, var(--accent), var(--danger));
+}
+
+.device-card .cancel-all {
+  margin-top: 10px;
+}
+
+.recent-group {
+  margin-top: 12px;
+}
+
+.recent-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  font-family: monospace;
+  font-size: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+
+.recent-item .job-status {
+  font-size: 0.75rem;
+}
+
+#queues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.device-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.device-card summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.device-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.device-card summary::before {
+  content: "▸";
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.device-card[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.device-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.device-card .device-summary {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+
+.device-card[open] .device-body {
+  margin-top: 8px;
+}
+
+.queues-message {
+  padding: 0 16px;
+}
+
+.device-card .device-type {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: normal;
+}
+
+.queue-empty {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0;
+  padding: 4px 0 0;
+}
+
+.queue-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-top: 8px;
+}
+
+.queue-item-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: monospace;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+/* long paths without spaces would otherwise push the card wider than the screen */
+.queue-item-name,
+.job-id {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.queue-item-state,
+.job-status {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.queue-item .job-cancel {
+  margin-top: 6px;
+}
+
+.jobs-group,
+.waiting-group {
+  margin: 8px 0 10px;
+}
+
+.jobs-group > summary,
+.waiting-group > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 4px 0;
+}
+
+.jobs-group[open] > summary,
+.waiting-group[open] > summary {
+  margin-bottom: 6px;
+}
+
+.scroll-box .file-row[data-path] {
+  cursor: pointer;
+}
+
+.scroll-box .file-row.selected {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+#clip-box > summary {
+  cursor: pointer;
+}
+
+#clip-box > summary h2 {
+  display: inline;
+  margin: 0;
+}
+
+.job-preview video {
+  display: block;
+  width: 100%;
+  max-height: 60vh;
+  margin: 6px 0;
+  border-radius: 6px;
+  background: #000;
+}
+
+.hint.warning,
+#logs-info.warning {
+  color: var(--danger);
+}
+
+.row-tight {
+  display: flex;
+  gap: 8px;
+}
+
+.log-row {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.log-name {
+  font-family: monospace;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.log-view {
+  max-height: 70vh;
+}
+
+.jobs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.jobs-header h2 {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.jobs-header {
+  gap: 12px;
+}
+
+.job {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.job-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: monospace;
+  margin-bottom: 6px;
+}
+
+.job-status.queued { color: var(--accent2); }
+.job-status.running { color: var(--accent); }
+.job-status.done { color: var(--ok); }
+.job-status.error { color: var(--danger); }
+.job-status.cancelled { color: var(--muted); }
+
+.job-progress {
+  background: var(--bg);
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.job-progress-bar {
+  background: var(--accent);
+  height: 100%;
+  width: 0%;
+  transition: width 0.2s ease;
+}
+
+.job-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.job-log {
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+}

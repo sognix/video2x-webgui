@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Problems with Video2X itself
+    url: https://github.com/k4yt3x/video2x/issues
+    about: Output quality, models, or crashes of the video2x binary
+  - name: Security vulnerability
+    url: https://github.com/sognix/video2x-webgui/security/advisories/new
+    about: Please report security issues privately

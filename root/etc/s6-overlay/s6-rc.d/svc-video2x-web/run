@@ -1,0 +1,17 @@
+#!/usr/bin/with-contenv bash
+# Copyright (C) 2026 sognix
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Permissions of everything the app creates (outputs, output folders, done/, logs).
+# The default 022 makes them writable for the container user only; on Unraid use 000
+# so SMB users can move and delete the results, like on any other share.
+UMASK="${UMASK:-022}"
+if [[ "$UMASK" =~ ^[0-7]{3,4}$ ]]; then
+  umask "$UMASK"
+else
+  echo "**** ignoring invalid UMASK '${UMASK}', using 022 ****"
+  umask 022
+fi
+
+cd /app/backend
+exec s6-setuidgid abc /app/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000

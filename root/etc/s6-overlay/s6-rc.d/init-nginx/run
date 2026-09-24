@@ -1,0 +1,22 @@
+#!/usr/bin/with-contenv bash
+# Copyright (C) 2026 sognix
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+NGINX_CONFIG=/etc/nginx/sites-available/default
+CPORT="${CUSTOM_PORT:-3000}"
+CHPORT="${CUSTOM_HTTPS_PORT:-3001}"
+
+if [ ! -f "/config/ssl/cert.pem" ]; then
+  mkdir -p /config/ssl
+  openssl req -new -x509 \
+    -days 3650 -nodes \
+    -out /config/ssl/cert.pem \
+    -keyout /config/ssl/cert.key \
+    -subj "/C=US/ST=CA/L=Carlsbad/O=Video2X-webGUI/OU=Video2X-webGUI/CN=*"
+  chmod 600 /config/ssl/cert.key
+  chown -R abc:abc /config/ssl
+fi
+
+cp /defaults/default.conf "${NGINX_CONFIG}"
+sed -i "s/3000/${CPORT}/g" "${NGINX_CONFIG}"
+sed -i "s/3001/${CHPORT}/g" "${NGINX_CONFIG}"

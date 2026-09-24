@@ -1,0 +1,150 @@
+# Copyright (C) 2026 sognix
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Builds the image on GitHub-hosted runners and publishes it to GitHub Container
+# Registry (ghcr.io/<owner>/video2x-webgui).
+#
+#   pull request     -> build + smoke test only (nothing is pushed)
+#   push to main     -> build + smoke test + push :edge
+#   tag v1.2.3       -> build + smoke test + push :1.2.3, :1.2 and :latest
+#   manual run       -> like a push to the branch/tag it runs on; optionally pin
+#                       the video2x version
+#
+# Every image also carries the video2x version it was built with, as the label
+# "video2x.version". Hosted runners are thrown away after each run, so there's
+# nothing to clean up afterwards.
+
+name: Build image
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      video2x_version:
+        description: "video2x release to build with (e.g. 6.4.0). Empty = latest upstream release."
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/video2x-webgui
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve video2x version
+        id: v2x
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PINNED: ${{ inputs.video2x_version }}
+        run: |
+          if [ -n "$PINNED" ]; then
+            VERSION="$PINNED"
+          else
+            VERSION=$(gh api repos/k4yt3x/video2x/releases/latest --jq .tag_name)
+          fi
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not determine the video2x version"
+            exit 1
+          fi
+          echo "Building with video2x $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Image tags and labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=edge,branch=main
+            type=ref,event=pr
+          labels: |
+            org.opencontainers.image.title=video2x-webGUI
+            org.opencontainers.image.description=Web UI for the Video2X CLI (upscaling / frame interpolation on NVIDIA/Vulkan GPUs) in a linuxserver.io-style container
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true # into the local docker engine, for the smoke test below
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VIDEO2X_VERSION=${{ steps.v2x.outputs.version }}
+            VERSION=${{ steps.meta.outputs.version }}
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test
+        env:
+          IMAGE_ID: ${{ steps.build.outputs.imageid }}
+        run: |
+          docker run -d --name smoke "$IMAGE_ID"
+
+          healthy=0
+          for i in $(seq 1 30); do
+            if docker exec smoke curl -sf http://localhost:3000/api/meta/processors >/dev/null; then
+              echo "API is up"
+              healthy=1
+              break
+            fi
+            sleep 2
+          done
+
+          ok=1
+          [ "$healthy" = "1" ] || { echo "::error::API never became healthy"; ok=0; }
+          docker exec smoke curl -sf http://localhost:3000/ >/dev/null \
+            || { echo "::error::frontend root not reachable"; ok=0; }
+          for tool in video2x ffmpeg ffprobe; do
+            docker exec smoke sh -c "command -v $tool" >/dev/null \
+              || { echo "::error::$tool missing in the image"; ok=0; }
+          done
+          if docker exec smoke curl -sf http://localhost:3000/ | grep -q "__ASSET_VERSION__"; then
+            echo "::error::asset version placeholder was not replaced"
+            ok=0
+          fi
+
+          docker logs smoke
+          docker rm -f smoke >/dev/null
+          [ "$ok" = "1" ]
+
+      - name: Log in to ghcr.io
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Push
+        if: github.event_name != 'pull_request'
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          # a manual run on a feature branch produces no tags — then it was a test build only
+          [ -n "$TAGS" ] || { echo "no tags for this ref, nothing to push"; exit 0; }
+          for tag in $TAGS; do
+            docker push "$tag"
+          done

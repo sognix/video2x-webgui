@@ -1,0 +1,15 @@
+name: Feature request
+description: Suggest an idea for the web UI or the image
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe the situation or problem first, then the idea — that helps find the best solution.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: How do you work around it today?

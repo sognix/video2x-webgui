@@ -1,0 +1,55 @@
+name: Bug report
+description: Something in the web UI or the image doesn't work
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Problems with Video2X itself (output quality, crashes of the
+        `video2x` binary for specific files) usually belong in the
+        [Video2X repository](https://github.com/k4yt3x/video2x/issues).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: image
+    attributes:
+      label: Image tag
+      description: e.g. `ghcr.io/…/video2x-webgui:0.1.0` or `:edge`
+    validations:
+      required: true
+  - type: input
+    id: gpus
+    attributes:
+      label: GPU(s)
+      description: As listed in the GPU dropdown, e.g. "NVIDIA GeForce RTX 3090"
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: Host
+      description: e.g. "Unraid 7.1, Nvidia-Driver plugin 570.x" or "Ubuntu 24.04, Docker 27"
+    validations:
+      required: true
+  - type: textarea
+    id: settings
+    attributes:
+      label: Job settings
+      description: Processor, model, scale, encoder — or the `args:` line from the job log
+  - type: textarea
+    id: log
+    attributes:
+      label: Job log
+      description: From the Logs tab, or the Log section of the job card
+      render: text
+  - type: textarea
+    id: container-log
+    attributes:
+      label: Container log (if the UI itself misbehaves)
+      description: "`docker logs <container>`"
+      render: text

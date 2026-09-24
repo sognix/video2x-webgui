@@ -1,0 +1,232 @@
+<!doctype html>
+<!-- Copyright (C) 2026 sognix
+     SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video2X</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css?v=__ASSET_VERSION__">
+</head>
+<body>
+<header>
+  <img src="favicon.png" width="1024" height="1024" alt="Video2X-webGUI">
+</header>
+
+<div id="panel-toptabs">
+  <div class="mode-toggle">
+    <button type="button" class="toptab-btn active" data-tab="run">Run</button>
+    <button type="button" class="toptab-btn" data-tab="queues">Status</button>
+    <button type="button" class="toptab-btn" data-tab="logs">Logs</button>
+  </div>
+</div>
+
+<div id="global-error" class="global-error" hidden></div>
+
+<main id="tab-run">
+  <section class="panel" id="panel-mode">
+    <div class="mode-toggle">
+      <button type="button" class="mode-btn active" data-mode="single">Single file</button>
+      <button type="button" class="mode-btn" data-mode="batch">Batch folder</button>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-input-single">
+    <h2>1. Input file</h2>
+    <div class="row">
+      <input type="file" id="upload-input">
+      <button id="upload-btn">Upload to /videos/input</button>
+    </div>
+    <label>Select input file
+      <select id="input-select"></select>
+    </label>
+    <p class="hint" id="input-info"></p>
+    <button id="refresh-files-btn" class="secondary" type="button">Refresh file list</button>
+  </section>
+
+  <section class="panel" id="panel-input-batch" hidden>
+    <h2>1. Batch folder (under /batch)</h2>
+    <label>Folder
+      <select id="batch-dir-select"></select>
+    </label>
+    <button id="refresh-batch-btn" class="secondary" type="button">Refresh folder list</button>
+    <p class="hint" id="batch-file-count"></p>
+    <div id="batch-file-list" class="scroll-box"></div>
+    <p class="hint">Click a file to use it for the preview clip (step 6).</p>
+    <label>Output extension
+      <select id="batch-ext-select">
+        <option value="mkv">mkv (recommended — keeps any subtitle/audio track)</option>
+        <option value="mp4">mp4</option>
+        <option value="mov">mov</option>
+      </select>
+    </label>
+    <p class="hint">GPUs to use — the batch's files wait in a shared pool, and whichever selected GPU is free takes the next one, so a faster GPU simply gets through more of them</p>
+    <div id="batch-devices-list"></div>
+    <label class="checkbox"><input type="checkbox" id="batch-move-done" checked> Move each successfully processed file into a done/ subfolder</label>
+    <p class="hint">Every video file directly inside the chosen folder is processed with the settings below. A GPU only picks up a batch file when it has nothing else to do, so a single job started meanwhile runs right after the batch file currently on that GPU. See the Status tab to watch progress. Outputs go into a folder named like the batch folder: /batch/&lt;folder&gt;/&lt;name&gt; → /videos/output/&lt;folder&gt;/&lt;name&gt;.&lt;ext&gt;.</p>
+  </section>
+
+  <section class="panel" id="panel-processor">
+    <h2>2. Processor</h2>
+    <label>Processor
+      <select id="processor-select"></select>
+    </label>
+    <div id="processor-fields"></div>
+  </section>
+
+  <section class="panel" id="panel-device">
+    <h2 id="device-panel-title">3. GPU (Vulkan device)</h2>
+    <label id="device-select-label">Device
+      <select id="device-select"></select>
+    </label>
+    <label>Hardware decode (hwaccel)
+      <select id="hwaccel-select"></select>
+    </label>
+    <p class="hint warning" id="hwaccel-warning" hidden></p>
+  </section>
+
+  <section class="panel" id="panel-encoder">
+    <h2>4. Encoder</h2>
+    <div class="grid">
+      <label>Codec
+        <input type="text" id="codec-input" value="libx264">
+      </label>
+      <label>CRF
+        <input type="number" id="crf-input" placeholder="e.g. 23">
+      </label>
+      <label>Preset
+        <select id="preset-select"><option value="">(default)</option></select>
+      </label>
+      <label>Bit rate (bps)
+        <input type="number" id="bitrate-input" placeholder="optional">
+      </label>
+    </div>
+    <label class="checkbox"><input type="checkbox" id="no-copy-streams-input"> Don't copy audio/subtitle streams</label>
+    <label class="checkbox"><input type="checkbox" id="benchmark-input"> Benchmark only (discard output)</label>
+    <label>Log level
+      <select id="loglevel-select"></select>
+    </label>
+    <h3>Extra encoder options</h3>
+    <div id="extra-options"></div>
+    <button id="add-extra-option-btn" class="secondary" type="button">+ Add option</button>
+  </section>
+
+  <section class="panel" id="panel-output-single">
+    <h2>5. Output</h2>
+    <label>Output filename (saved under /videos/output)
+      <input type="text" id="output-name-input" placeholder="upscaled.mkv">
+    </label>
+  </section>
+
+  <section class="panel" id="panel-clip">
+    <details id="clip-box">
+      <summary><h2>6. Preview clip (optional)</h2></summary>
+      <p class="hint">Renders a few seconds with the settings above, so you can check the result before committing hours to the whole file or batch. It is queued like a single job on the chosen GPU (batch mode: the first checked one), always encoded as H.264 without audio, and plays right here in its job card. Clips are temporary — clearing the job deletes them.</p>
+      <div class="grid">
+        <label>Start at (seconds)
+          <input type="number" id="clip-start" value="60" min="0" step="1">
+        </label>
+        <label>Length (seconds)
+          <input type="number" id="clip-duration" value="10" min="1" max="120" step="1">
+        </label>
+      </div>
+      <p class="hint" id="clip-source"></p>
+      <button type="button" id="clip-btn" class="accent2">Render preview clip</button>
+    </details>
+  </section>
+
+  <section class="panel">
+    <button id="start-btn">Start job</button>
+  </section>
+
+  <section class="panel" id="panel-jobs">
+    <div class="jobs-header">
+      <h2>Jobs</h2>
+      <button type="button" id="clear-jobs-btn" class="job-clear secondary">Clear finished</button>
+    </div>
+    <div id="jobs-list">
+      <div id="jobs-running"></div>
+      <details id="jobs-queued-group" class="jobs-group" hidden>
+        <summary id="jobs-queued-summary"></summary>
+        <div id="jobs-queued"></div>
+      </details>
+      <details id="jobs-finished-group" class="jobs-group" hidden>
+        <summary id="jobs-finished-summary"></summary>
+        <div id="jobs-finished"></div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<div id="tab-queues" hidden>
+  <section class="panel" id="queues-overview">
+    <div class="overview-row">
+      <div id="overview-text" class="overview-text">Loading…</div>
+      <button type="button" id="notify-btn" class="secondary" hidden>Enable notifications</button>
+    </div>
+    <p class="hint">Live view of every device's queue — what's running now and what's waiting, in order. One job runs per device at a time, regardless of whether it came from Single file or Batch mode. Time estimates assume the waiting files take about as long as the ones already done.</p>
+  </section>
+  <section class="panel" id="batches-panel" hidden>
+    <h2>Batches</h2>
+    <div id="batches-list"></div>
+  </section>
+  <div id="queues-list"></div>
+</div>
+
+<div id="tab-logs" hidden>
+  <section class="panel" id="log-view-panel" hidden>
+    <div class="jobs-header">
+      <h2 id="log-view-title"></h2>
+      <button type="button" id="log-view-close" class="secondary">Close</button>
+    </div>
+    <pre id="log-view" class="job-log log-view"></pre>
+  </section>
+  <section class="panel">
+    <div class="jobs-header">
+      <h2>Log files</h2>
+      <div class="row-tight">
+        <button type="button" id="logs-refresh-btn" class="secondary">Refresh</button>
+        <button type="button" id="logs-clear-btn" class="job-cancel secondary">Delete all</button>
+      </div>
+    </div>
+    <p class="hint" id="logs-info"></p>
+    <div id="logs-list"></div>
+  </section>
+</div>
+
+<template id="tpl-extra-option">
+  <div class="row extra-option">
+    <input type="text" class="extra-key" placeholder="key (e.g. tune)">
+    <input type="text" class="extra-value" placeholder="value (e.g. animation)">
+    <button type="button" class="remove-extra secondary">x</button>
+  </div>
+</template>
+
+<template id="tpl-job">
+  <div class="job" data-id="">
+    <div class="job-header">
+      <span class="job-id"></span>
+      <span class="job-status"></span>
+    </div>
+    <div class="job-progress"><div class="job-progress-bar"></div></div>
+    <div class="job-meta"></div>
+    <div class="job-preview" hidden></div>
+    <details>
+      <summary>Log</summary>
+      <pre class="job-log"></pre>
+    </details>
+    <div class="job-actions">
+      <button type="button" class="job-cancel secondary">Cancel</button>
+      <button type="button" class="job-clear secondary">Clear</button>
+    </div>
+  </div>
+</template>
+
+<footer class="site-footer">
+  Video2X-webGUI · <span id="source-link">AGPL-3.0</span> · unofficial, not affiliated with the Video2X project
+</footer>
+
+<script src="app.js?v=__ASSET_VERSION__"></script>
+</body>
+</html>
