@@ -5,7 +5,7 @@ each release also names the Video2X version its image was built with.
 
 ## [Unreleased]
 
-## [0.1.0] — first public release
+## [v1.0.0] — first public release
 
 Built with Video2X 6.4.0.
 
