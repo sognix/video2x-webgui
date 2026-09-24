@@ -5,10 +5,12 @@
 # Registry (ghcr.io/<owner>/video2x-webgui).
 #
 #   pull request     -> build + smoke test only (nothing is pushed)
-#   push to main     -> build + smoke test + push :edge
-#   tag v1.2.3       -> build + smoke test + push :1.2.3, :1.2 and :latest
+#   push to main     -> build + smoke test + push :dev   (development builds)
+#   tag v1.2.3       -> build + smoke test + push :1.2.3, :1.2 and :latest (releases)
 #   manual run       -> like a push to the branch/tag it runs on; optionally pin
 #                       the video2x version
+#
+# :latest only ever changes through a version tag, never through a normal push.
 #
 # Every image also carries the video2x version it was built with, as the label
 # "video2x.version". Hosted runners are thrown away after each run, so there's
@@ -73,7 +75,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            type=edge,branch=main
+            type=raw,value=dev,enable={{is_default_branch}}
             type=ref,event=pr
           labels: |
             org.opencontainers.image.title=video2x-webGUI
@@ -143,7 +145,7 @@ jobs:
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          # a manual run on a feature branch produces no tags — then it was a test build only
+          # a run on any other branch produces no tags — then it was a test build only
           [ -n "$TAGS" ] || { echo "no tags for this ref, nothing to push"; exit 0; }
           for tag in $TAGS; do
             docker push "$tag"

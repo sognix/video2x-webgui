@@ -19,7 +19,7 @@ body:
     id: image
     attributes:
       label: Image tag
-      description: e.g. `ghcr.io/…/video2x-webgui:0.1.0` or `:edge`
+      description: e.g. `ghcr.io/sognix/video2x-webgui:0.1.0`, `:latest` or `:dev`
     validations:
       required: true
   - type: input
