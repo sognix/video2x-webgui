@@ -5,6 +5,10 @@ each release also names the Video2X version its image was built with.
 
 ## [Unreleased]
 
+## [v1.0.1]
+
+Built with Video2X 6.4.0.
+
 - Unraid template (`unraid/video2x-webgui.xml`) for Community Applications.
 - The "no Vulkan device" hint in job logs now also covers Intel/AMD GPUs (`/dev/dri`).
 
