@@ -63,6 +63,23 @@ problems are almost always Video2X or driver issues — please report those to t
 
 ## Quick start
 
+### Unraid
+
+Search for **video2x-webgui** in Community Applications. Until it's listed there, add the
+template by hand: save
+[`unraid/video2x-webgui.xml`](unraid/video2x-webgui.xml) as
+`/boot/config/plugins/dockerMan/templates-user/my-video2x-webgui.xml` on your server, then
+pick it under *Docker → Add Container → Template*.
+
+The template sets `PUID=99`, `PGID=100` and `UMASK=000`, but no GPU, so it starts on any
+server. Add your GPU by hand, otherwise Video2X runs on the CPU (extremely slow):
+
+- **NVIDIA:** install the Nvidia-Driver plugin, then add `--gpus all` to *Extra Parameters*
+  (advanced view).
+- **Intel/AMD:** set the *Intel/AMD GPU* device to `/dev/dri`.
+
+Both can be used together.
+
 ### Docker Compose
 
 ```yaml

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 sognix
+     SPDX-License-Identifier: AGPL-3.0-or-later -->
+<CommunityApplications>
+  <Profile>Web interface for Video2X: AI upscaling and frame interpolation of videos on your GPUs. The template is in unraid/. Support via GitHub issues: https://github.com/sognix/video2x-webgui/issues</Profile>
+  <Icon>https://raw.githubusercontent.com/sognix/video2x-webgui/main/unraid/video2x-webgui.png</Icon>
+  <WebPage>https://github.com/sognix/video2x-webgui</WebPage>
+</CommunityApplications>

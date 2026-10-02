@@ -58,7 +58,7 @@ the official Video2X release binary this image installs. Listed per Video2X's ow
 
 ## Logo
 
-`app/frontend/favicon.png` is derived from the Video2X application icon
+`app/frontend/favicon.png` (and its downscaled copy `unraid/video2x-webgui.png`) is derived from the Video2X application icon
 [`packaging/appimage/video2x.png`](https://github.com/k4yt3x/video2x/blob/master/packaging/appimage/video2x.png)
 by K4YT3X, part of the Video2X repository and therefore under its AGPL-3.0 license:
 the "V" and "2X" lettering, style and colors are from the original; the "webGUI"

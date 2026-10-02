@@ -40,7 +40,8 @@ ERROR_HINTS = [
     (
         re.compile(r"no vulkan devices? found|invalid device|failed to.*vulkan device", re.I),
         "tip: no usable Vulkan device at that index — check the Vulkan device dropdown, and "
-        "if you expect a GPU, confirm the container was started with --gpus all.",
+        "if you expect a GPU, check the container's GPU access: NVIDIA GPUs need --gpus all, "
+        "Intel/AMD GPUs need /dev/dri passed in (both together works too).",
     ),
     (
         re.compile(r"no such file or directory", re.I),
