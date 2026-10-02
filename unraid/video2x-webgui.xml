@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 sognix
+     SPDX-License-Identifier: AGPL-3.0-or-later -->
+<Container version="2">
+  <Name>video2x-webgui</Name>
+  <Repository>ghcr.io/sognix/video2x-webgui:latest</Repository>
+  <Registry>https://github.com/sognix/video2x-webgui/pkgs/container/video2x-webgui</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/sognix/video2x-webgui/issues</Support>
+  <Project>https://github.com/sognix/video2x-webgui</Project>
+  <Overview>Web interface for Video2X: AI upscaling (Real-ESRGAN, Real-CUGAN, Anime4K/libplacebo) and frame interpolation (RIFE) of videos on your GPUs. Every Video2X option in the browser, batch processing of whole folders, one queue per GPU (a free GPU takes the next batch file), preview clips, live progress and per-job logs.&#xD;
+&#xD;
+GPU setup (without it, Video2X falls back to the CPU and is extremely slow):&#xD;
+- NVIDIA: install the Nvidia-Driver plugin, then add "--gpus all" to Extra Parameters (advanced view).&#xD;
+- Intel/AMD: set the "Intel/AMD GPU" device to /dev/dri.&#xD;
+Both can be used together. Tested on RTX 3090 and RTX 5060 Ti.&#xD;
+&#xD;
+The web UI has no login: anyone who can reach the port can upload, start jobs and delete logs. Keep it on your LAN or behind a reverse proxy with authentication.&#xD;
+&#xD;
+Unofficial, not affiliated with the Video2X project.</Overview>
+  <Category>MediaApp:Video Tools:</Category>
+  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/sognix/video2x-webgui/main/unraid/video2x-webgui.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/sognix/video2x-webgui/main/unraid/video2x-webgui.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires>A GPU must be added by hand. NVIDIA: Nvidia-Driver plugin plus "--gpus all" in Extra Parameters. Intel/AMD: set the "Intel/AMD GPU" device to /dev/dri.</Requires>
+  <Config Name="WebUI (HTTP)" Target="3000" Default="3000" Mode="tcp" Description="Web interface" Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+  <Config Name="WebUI (HTTPS)" Target="3001" Default="3001" Mode="tcp" Description="Web interface with a self-signed certificate. Needed for browser notifications unless you use a reverse proxy." Type="Port" Display="advanced" Required="false" Mask="false">3001</Config>
+  <Config Name="Videos" Target="/videos" Default="/mnt/user/video2x/videos/" Mode="rw" Description="Single files: uploads land in input/, all results (single and batch) go to output/" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/video2x/videos/</Config>
+  <Config Name="Batch" Target="/batch" Default="/mnt/user/video2x/batch/" Mode="rw" Description="Folders to process in batch mode. Finished inputs are moved to &lt;folder&gt;/done/" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/video2x/batch/</Config>
+  <Config Name="Logs" Target="/logs" Default="/mnt/user/appdata/video2x-webgui/logs/" Mode="rw" Description="One log file per job" Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/video2x-webgui/logs/</Config>
+  <Config Name="Config" Target="/config" Default="/mnt/user/appdata/video2x-webgui/config/" Mode="rw" Description="Persistent settings (self-signed HTTPS certificate)" Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/video2x-webgui/config/</Config>
+  <Config Name="Intel/AMD GPU" Target="/dev/dri" Default="/dev/dri" Mode="" Description="Only needed for Intel/AMD GPUs: set to /dev/dri. Leave empty if the server has none, otherwise the container won't start. NVIDIA GPUs instead need --gpus all in Extra Parameters; both can be combined." Type="Device" Display="always" Required="false" Mask="false"/>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User the app runs as (99 = nobody)" Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group the app runs as (100 = users)" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+  <Config Name="UMASK" Target="UMASK" Default="000" Mode="" Description="Permissions of created files. 000 lets SMB users move and delete the results" Type="Variable" Display="advanced" Required="false" Mask="false">000</Config>
+</Container>
