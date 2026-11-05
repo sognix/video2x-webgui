@@ -140,13 +140,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
+      # Pushed with buildx from the build cache (same inputs as the tested build),
+      # not with "docker push": newer Docker engines push an OCI image manifest,
+      # which the Unraid update check can't read ("not available"). Docker media
+      # types and no provenance give a plain Docker v2 manifest, like 1.0.1 and older.
+      # A run on any other branch produces no tags - then it was a test build only.
       - name: Push
-        if: github.event_name != 'pull_request'
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}
-        run: |
-          # a run on any other branch produces no tags — then it was a test build only
-          [ -n "$TAGS" ] || { echo "no tags for this ref, nothing to push"; exit 0; }
-          for tag in $TAGS; do
-            docker push "$tag"
-          done
+        if: github.event_name != 'pull_request' && steps.meta.outputs.tags != ''
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VIDEO2X_VERSION=${{ steps.v2x.outputs.version }}
+            VERSION=${{ steps.meta.outputs.version }}
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: type=gha
+          provenance: false
+          sbom: false
+          outputs: type=registry,oci-mediatypes=false
