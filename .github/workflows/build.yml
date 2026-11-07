@@ -7,13 +7,15 @@
 #   pull request     -> build + smoke test only (nothing is pushed)
 #   push to main     -> build + smoke test + push :dev   (development builds)
 #   tag v1.2.3       -> build + smoke test + push :1.2.3, :1.2 and :latest (releases)
-#   manual run       -> like a push to the branch/tag it runs on; optionally pin
-#                       the video2x version
+#   manual run       -> like a push to the branch/tag it runs on; optionally another
+#                       video2x version
 #
 # :latest only ever changes through a version tag, never through a normal push.
+# A version tag is only built if its release notes exist (job "test").
 #
-# Every image also carries the video2x version it was built with, as the label
-# "video2x.version". Hosted runners are thrown away after each run, so there's
+# The video2x version is pinned in the Dockerfile (ARG VIDEO2X_VERSION); Renovate
+# (renovate.json) opens a pull request for a new upstream release. Every image also
+# carries the version it was built with, as the label "video2x.version". Hosted runners are thrown away after each run, so there's
 # nothing to clean up afterwards.
 
 name: Build image
@@ -26,7 +28,7 @@ on:
   workflow_dispatch:
     inputs:
       video2x_version:
-        description: "video2x release to build with (e.g. 6.4.0). Empty = latest upstream release."
+        description: "video2x release to build with (e.g. 6.4.0). Empty = the version in the Dockerfile."
         type: string
         default: ""
 
@@ -42,7 +44,28 @@ env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/video2x-webgui
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # A release tag needs its notes: a section "## [vX.Y.Z]" in CHANGELOG.md and "### vX.Y.Z" in
+      # <Changes> of the Unraid template. Without them no image is built or pushed for the tag.
+      # release.py (local, not in the repo) writes both before the tag is made.
+      - name: Release notes present
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          V="$GITHUB_REF_NAME"
+          ok=1
+          grep -qF "## [$V]" CHANGELOG.md \
+            || { echo "::error::CHANGELOG.md has no section '## [$V]'"; ok=0; }
+          grep -qF "### $V&#xD;" unraid/video2x-webgui.xml \
+            || { echo "::error::unraid/video2x-webgui.xml has no '### $V' in <Changes>"; ok=0; }
+          [ "$ok" = "1" ]
+
   build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,13 +74,12 @@ jobs:
       - name: Resolve video2x version
         id: v2x
         env:
-          GH_TOKEN: ${{ github.token }}
           PINNED: ${{ inputs.video2x_version }}
         run: |
           if [ -n "$PINNED" ]; then
             VERSION="$PINNED"
           else
-            VERSION=$(gh api repos/k4yt3x/video2x/releases/latest --jq .tag_name)
+            VERSION=$(sed -n 's/^ARG VIDEO2X_VERSION=//p' Dockerfile)
           fi
           if [ -z "$VERSION" ]; then
             echo "::error::Could not determine the video2x version"

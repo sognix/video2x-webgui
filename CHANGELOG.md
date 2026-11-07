@@ -3,16 +3,29 @@
 All notable changes to this project. Versions follow [Semantic Versioning](https://semver.org/);
 each release also names the Video2X version its image was built with.
 
-## [Unreleased]
+## [v1.0.3] - 2026-11-05
 
-## [v1.0.1]
+Built with Video2X 6.4.0.
+
+- Images are pushed with a plain Docker v2 manifest again, so the Unraid update check
+  works (it showed "not available" for images with an OCI manifest).
+
+## [v1.0.2] - 2026-11-05
+
+Built with Video2X 6.4.0.
+
+- Dependency updates: FastAPI 0.162.0, Uvicorn 0.54.0.
+
+## [v1.0.1] - 2026-10-02
 
 Built with Video2X 6.4.0.
 
 - Unraid template (`unraid/video2x-webgui.xml`) for Community Applications.
 - The "no Vulkan device" hint in job logs now also covers Intel/AMD GPUs (`/dev/dri`).
 
-## [v1.0.0] — first public release
+## [v1.0.0] - 2026-09-24
+
+First public release.
 
 Built with Video2X 6.4.0.
 

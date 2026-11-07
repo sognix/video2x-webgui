@@ -1,0 +1,28 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Only the Video2X version in the Dockerfile. GitHub Actions and pip packages are Dependabot's job (.github/dependabot.yml).",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["custom.regex"],
+  "dependencyDashboard": false,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Video2X release in the Dockerfile; the image downloads Video2X-x86_64.AppImage from that GitHub release.",
+      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
+      "matchStrings": ["ARG VIDEO2X_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "k4yt3x/video2x",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchDepNames": ["k4yt3x/video2x"],
+      "commitMessageTopic": "Video2X",
+      "labels": ["video2x-update"],
+      "prBodyNotes": [
+        "CI builds the image and runs the smoke test, but has no GPU. Before merging, check the Video2X release notes for changed CLI options or models (the web UI offers them) and run one job on a real GPU."
+      ]
+    }
+  ]
+}
