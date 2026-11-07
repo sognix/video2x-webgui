@@ -7,13 +7,13 @@ FROM ghcr.io/linuxserver/baseimage-selkies:ubuntunoble
 # set version label
 ARG BUILD_DATE
 ARG VERSION
-ARG VIDEO2X_VERSION
+# Video2X release the image is built with. Pinned on purpose: Renovate (renovate.json)
+# opens a pull request for a new upstream release, so CI tests it before it lands.
+# CI reads this line; a manual workflow run or --build-arg can override it.
+ARG VIDEO2X_VERSION=6.4.0
 LABEL build_version="Linuxserver.io-style version:- ${VERSION} Build-date:- ${BUILD_DATE}"
 LABEL maintainer="sognix"
 LABEL project="video2x-webGUI"
-# Only meaningful when VIDEO2X_VERSION is passed explicitly (e.g. by CI, which always
-# resolves it up front) — a plain local `docker build .` leaves this blank since the
-# fallback-to-latest resolution below happens inside a RUN step, after LABEL is fixed.
 LABEL video2x.version="${VIDEO2X_VERSION}"
 
 RUN \
@@ -21,10 +21,6 @@ RUN \
   apt-get update && \
   apt-get install -y --no-install-recommends ffmpeg && \
   echo "**** install video2x ****" && \
-  if [ -z ${VIDEO2X_VERSION+x} ]; then \
-    VIDEO2X_VERSION=$(curl -sX GET "https://api.github.com/repos/k4yt3x/video2x/releases/latest" \
-      | awk '/tag_name/{print $4;exit}' FS='[""]'); \
-  fi && \
   mkdir -p /tmp/video2x && \
   curl -o \
     /tmp/video2x/Video2X.AppImage -L \

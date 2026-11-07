@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Local release helper; not part of the public repo.
+release.py

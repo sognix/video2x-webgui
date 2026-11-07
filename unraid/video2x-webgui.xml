@@ -21,6 +21,22 @@ Both can be used together. Tested on RTX 3090 and RTX 5060 Ti.&#xD;
 The web UI has no login: anyone who can reach the port can upload, start jobs and delete logs. Keep it on your LAN or behind a reverse proxy with authentication.&#xD;
 &#xD;
 Unofficial, not affiliated with the Video2X project.</Overview>
+  <Changes>### v1.0.3&#xD;
+- Images are pushed with a plain Docker v2 manifest again, so the Unraid update check works (it showed "not available" for images with an OCI manifest).&#xD;
+- Built with Video2X 6.4.0.&#xD;
+&#xD;
+### v1.0.2&#xD;
+- Dependency updates: FastAPI 0.162.0, Uvicorn 0.54.0.&#xD;
+- Built with Video2X 6.4.0.&#xD;
+&#xD;
+### v1.0.1&#xD;
+- Unraid template (`unraid/video2x-webgui.xml`) for Community Applications.&#xD;
+- The "no Vulkan device" hint in job logs now also covers Intel/AMD GPUs (`/dev/dri`).&#xD;
+- Built with Video2X 6.4.0.&#xD;
+&#xD;
+### v1.0.0&#xD;
+- First public release: web UI for every Video2X CLI option (Real-ESRGAN, Real-CUGAN, libplacebo/Anime4K, RIFE), single files and batch folders, one queue per GPU plus a shared batch pool, status tab, preview clips, video info and job logs.&#xD;
+- Built with Video2X 6.4.0.</Changes>
   <Category>MediaApp:Video Tools:</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/sognix/video2x-webgui/main/unraid/video2x-webgui.xml</TemplateURL>
